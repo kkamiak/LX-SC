@@ -14,7 +14,7 @@ contract UserProxy is Owned {
         uint value
     );
 
-    function () public payable {
+    function () external payable {
         Received(msg.sender, msg.value);
     }
 
