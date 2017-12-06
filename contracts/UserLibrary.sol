@@ -53,13 +53,14 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     function UserLibrary(Storage _store, bytes32 _crate, address _roles2Library)
         StorageAdapter(_store, _crate)
         Roles2LibraryAdapter(_roles2Library)
+        public
     {
         skillAreas.init('skillAreas');
         skillCategories.init('skillCategories');
         skills.init('skills');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) public auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -68,6 +69,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     }
 
     function getAreaInfo(address _user, uint _area)
+        public
         singleOddFlag(_area)
         constant
     returns(bool partialArea, bool fullArea) {
@@ -75,12 +77,13 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
         return (_hasFlag(areas, _area), _hasFlag(areas, _area << 1));
     }
 
-    function hasArea(address _user, uint _area) constant returns(bool) {
+    function hasArea(address _user, uint _area) public constant returns(bool) {
         var (partial,) = getAreaInfo(_user, _area);
         return partial;
     }
 
     function getCategoryInfo(address _user, uint _area, uint _category)
+        public
         singleOddFlag(_category)
         constant
     returns(bool partialCategory, bool fullCategory) {
@@ -95,16 +98,16 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
         return (_hasFlag(categories, _category), _hasFlag(categories, _category << 1));
     }
 
-    function hasCategory(address _user, uint _area, uint _category) constant returns(bool) {
+    function hasCategory(address _user, uint _area, uint _category) public constant returns(bool) {
         var (partial,) = getCategoryInfo(_user, _area, _category);
         return partial;
     }
 
-    function hasSkill(address _user, uint _area, uint _category, uint _skill) singleFlag(_skill) constant returns(bool) {
+    function hasSkill(address _user, uint _area, uint _category, uint _skill) singleFlag(_skill) public constant returns(bool) {
         return hasSkills(_user, _area, _category, _skill);
     }
 
-    function hasSkills(address _user, uint _area, uint _category, uint _skills) constant returns(bool) {
+    function hasSkills(address _user, uint _area, uint _category, uint _skills) public constant returns(bool) {
         var (partialCategory, fullCategory) = getCategoryInfo(_user, _area, _category);
         if (!partialCategory) {
             return false;
@@ -120,7 +123,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     uint[] tempSkills;
     // If some area of category is full, then we are not looking into it cause observer can safely
     // assume that everything inside is filled.
-    function getUserSkills(address _user) constant returns(uint, uint[], uint[]) {
+    function getUserSkills(address _user) public returns(uint, uint[], uint[]) {
         tempCategories.length = 0;
         tempSkills.length = 0;
         uint areas = store.get(skillAreas, _user);
@@ -140,6 +143,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     }
 
     function setAreas(address _user, uint _areas)
+        public
         ifEvenThenOddTooFlags(_areas)
         auth()
     returns(bool) {
@@ -156,6 +160,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     }
 
     function setCategories(address _user, uint _area, uint _categories)
+        public
         singleOddFlag(_area)
         ifEvenThenOddTooFlags(_categories)
         hasFlags(_categories)
@@ -175,6 +180,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     }
 
     function setSkills(address _user, uint _area, uint _category, uint _skills)
+        public
         singleOddFlag(_area)
         singleOddFlag(_category)
         hasFlags(_skills)
@@ -190,7 +196,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
         return _setMany(_user, _areas, _categories, _skills, false);
     }
 
-    function setMany(address _user, uint _areas, uint[] _categories, uint[] _skills) auth() returns(bool) {
+    function setMany(address _user, uint _areas, uint[] _categories, uint[] _skills) public auth() returns(bool) {
         return _setMany(_user, _areas, _categories, _skills, true);
     }
 
@@ -273,15 +279,15 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
         UserLibrary(getEventsHistory()).emitSkillsSet(_user, _area, _category, _skills);
     }
 
-    function emitSkillAreasSet(address _user, uint _areas) {
+    function emitSkillAreasSet(address _user, uint _areas) public {
         SkillAreasSet(_self(), _user, _areas);
     }
 
-    function emitSkillCategoriesSet(address _user, uint _area, uint _categories) {
+    function emitSkillCategoriesSet(address _user, uint _area, uint _categories) public {
         SkillCategoriesSet(_self(), _user, _area, _categories);
     }
 
-    function emitSkillsSet(address _user, uint _area, uint _category, uint _skills) {
+    function emitSkillsSet(address _user, uint _area, uint _category, uint _skills) public {
         SkillsSet(_self(), _user, _area, _category, _skills);
     }
 
