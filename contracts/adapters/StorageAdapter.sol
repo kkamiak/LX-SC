@@ -7,7 +7,7 @@ contract StorageAdapter {
 
     StorageInterface.Config store;
 
-    function StorageAdapter(Storage _store, bytes32 _crate) {
+    function StorageAdapter(Storage _store, bytes32 _crate) public {
         store.init(_store, _crate);
     }
 }

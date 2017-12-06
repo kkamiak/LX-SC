@@ -38,4 +38,6 @@ jspm_packages
 
 build/
 package-lock.json
+
+#idea
 /.idea/
