@@ -12,13 +12,14 @@ contract ERC20Library is StorageAdapter, MultiEventsHistoryAdapter, Roles2Librar
     event ContractRemoved(address indexed self, address indexed contractAddress);
 
     function ERC20Library(Storage _store, bytes32 _crate, address _roles2Library)
+        public
         StorageAdapter(_store, _crate)
         Roles2LibraryAdapter(_roles2Library)
     {
         contracts.init('contracts');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) external auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -26,23 +27,23 @@ contract ERC20Library is StorageAdapter, MultiEventsHistoryAdapter, Roles2Librar
         return true;
     }
 
-    function count() constant returns(uint) {
+    function count() public view returns(uint) {
         return store.count(contracts);
     }
 
-    function includes(address _contract) constant returns(bool) {
+    function includes(address _contract) public view returns(bool) {
         return store.includes(contracts, _contract);
     }
 
-    function getContracts() constant returns(address[]) {
+    function getContracts() public view returns(address[]) {
         return store.get(contracts);
     }
 
-    function getContract(uint _index) constant returns(address) {
+    function getContract(uint _index) public view returns(address) {
         return store.get(contracts, _index);
     }
 
-    function addContract(address _address) auth() returns(bool) {
+    function addContract(address _address) external auth() returns(bool) {
         if (includes(_address)) {
             return false;
         }
@@ -51,7 +52,7 @@ contract ERC20Library is StorageAdapter, MultiEventsHistoryAdapter, Roles2Librar
         return true;
     }
 
-    function removeContract(address _address) auth() returns(bool) {
+    function removeContract(address _address) external auth() returns(bool) {
         if (!includes(_address)) {
             return false;
         }
@@ -68,11 +69,11 @@ contract ERC20Library is StorageAdapter, MultiEventsHistoryAdapter, Roles2Librar
         ERC20Library(getEventsHistory()).emitContractRemoved(_address);
     }
 
-    function emitContractAdded(address _address) {
+    function emitContractAdded(address _address) public {
         ContractAdded(_self(), _address);
     }
 
-    function emitContractRemoved(address _address) {
+    function emitContractRemoved(address _address) public {
         ContractRemoved(_self(), _address);
     }
 }
