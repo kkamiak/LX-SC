@@ -48,24 +48,25 @@ contract SkillsLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         _;
     }
 
-    function _isSingleFlag(uint _flag) constant internal returns(bool) {
+    function _isSingleFlag(uint _flag) pure internal returns(bool) {
         return _flag != 0 && (_flag & (_flag - 1) == 0);
     }
 
-    function _isOddFlag(uint _flag) constant internal returns(bool) {
+    function _isOddFlag(uint _flag) pure internal returns(bool) {
         return _flag & 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa == 0;
     }
 
     function SkillsLibrary(Storage _store, bytes32 _crate, address _roles2Library)
         StorageAdapter(_store, _crate)
         Roles2LibraryAdapter(_roles2Library)
+        public
     {
         areas.init('areas');
         categories.init('categories');
         skills.init('skills');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) public auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -73,19 +74,20 @@ contract SkillsLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         return true;
     }
 
-    function getArea(uint _area) constant returns(bytes32) {
+    function getArea(uint _area) public constant returns(bytes32) {
         return store.get(areas, _area);
     }
 
-    function getCategory(uint _area, uint _category) constant returns(bytes32) {
+    function getCategory(uint _area, uint _category) public constant returns(bytes32) {
         return store.get(categories, _area, _category);
     }
 
-    function getSkill(uint _area, uint _category, uint _skill) constant returns(bytes32) {
+    function getSkill(uint _area, uint _category, uint _skill) public constant returns(bytes32) {
         return store.get(skills, _area, _category, _skill);
     }
 
     function setArea(uint _area, bytes32 _hash)
+        public
         singleOddFlag(_area)
         auth()
     returns(bool) {
@@ -95,6 +97,7 @@ contract SkillsLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function setCategory(uint _area, uint _category, bytes32 _hash)
+        public
         singleOddFlag(_category)
         auth()
     returns(bool) {
@@ -107,6 +110,7 @@ contract SkillsLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function setSkill(uint _area, uint _category, uint _skill, bytes32 _hash)
+        public
         singleFlag(_skill)
         auth()
     returns(bool) {
@@ -133,15 +137,15 @@ contract SkillsLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         SkillsLibrary(getEventsHistory()).emitSkillSet(_area, _category, _skill, _hash);
     }
 
-    function emitAreaSet(uint _area, bytes32 _hash) {
+    function emitAreaSet(uint _area, bytes32 _hash) public {
         AreaSet(_self(), _area, _hash);
     }
 
-    function emitCategorySet(uint _area, uint _category, bytes32 _hash) {
+    function emitCategorySet(uint _area, uint _category, bytes32 _hash) public {
         CategorySet(_self(), _area, _category, _hash);
     }
 
-    function emitSkillSet(uint _area, uint _category, uint _skill, bytes32 _hash) {
+    function emitSkillSet(uint _area, uint _category, uint _skill, bytes32 _hash) public {
         SkillSet(_self(), _area, _category, _skill, _hash);
     }
 }
