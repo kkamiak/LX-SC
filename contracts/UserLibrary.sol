@@ -186,7 +186,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
         return true;
     }
 
-    function addMany(address _user, uint _areas, uint[] _categories, uint[] _skills) auth() returns(bool) {
+    function addMany(address _user, uint _areas, uint[] _categories, uint[] _skills) auth() public returns(bool) {
         return _setMany(_user, _areas, _categories, _skills, false);
     }
 

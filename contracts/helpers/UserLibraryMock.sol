@@ -8,12 +8,12 @@ contract UserLibraryMock {
         return (addRoleCalls, setManyCalls);
     }
 
-    function addRole(address _user, bytes32 _role) constant returns(bool) {
+    function addRole(address, bytes32) constant returns(bool) {
         addRoleCalls++;
         return true;
     }
 
-    function setMany(address _user, uint _areas, uint[] _categories, uint[] _skills) returns(bool) {
+    function setMany(address, uint, uint[], uint[]) returns(bool) {
         setManyCalls++;
         return true;
     }

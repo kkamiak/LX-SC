@@ -14,7 +14,7 @@ contract UserProxy is Owned {
         uint value
     );
 
-    function () payable {
+    function () public payable {
         Received(msg.sender, msg.value);
     }
 
@@ -23,8 +23,8 @@ contract UserProxy is Owned {
         bytes _data,
         uint _value,
         bool _throwOnFailedCall
-    )
-        onlyContractOwner()
+    )  public
+    onlyContractOwner()
     returns(bytes32 result) {
         bool success;
         assembly {
@@ -32,7 +32,7 @@ contract UserProxy is Owned {
             result := mload(0)
         }
         require(success || !_throwOnFailedCall);
-        
+
         Forwarded(_destination, _value, _data);
     }
 }

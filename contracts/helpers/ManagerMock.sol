@@ -7,7 +7,7 @@ contract ManagerMock {
         denied = true;
     }
 
-    function isAllowed(address _actor, bytes32 _role) constant returns(bool) {
+    function isAllowed(address, bytes32) constant returns(bool) {
         if (denied) {
             denied = false;
             return false;
