@@ -12,7 +12,7 @@ contract Owned {
     address public contractOwner;
     address public pendingContractOwner;
 
-    function Owned() {
+    function Owned() public {
         contractOwner = msg.sender;
     }
 
@@ -31,7 +31,7 @@ contract Owned {
      *
      * @return success.
      */
-    function changeContractOwnership(address _to) onlyContractOwner() returns(bool) {
+    function changeContractOwnership(address _to) public onlyContractOwner() returns(bool) {
         pendingContractOwner = _to;
         return true;
     }
@@ -43,7 +43,7 @@ contract Owned {
      *
      * @return success.
      */
-    function claimContractOwnership() returns(bool) {
+    function claimContractOwnership() public returns(bool) {
         if (pendingContractOwner != msg.sender) {
             return false;
         }
@@ -56,7 +56,7 @@ contract Owned {
     *  Withdraw given tokens from contract to owner.
     *  This method is only allowed for contact owner.
     */
-    function withdrawTokens(address[] tokens) onlyContractOwner {
+    function withdrawTokens(address[] tokens) external onlyContractOwner {
         for (uint i = 0; i < tokens.length; i++) {
             ERC20Interface token = ERC20Interface(tokens[i]);
             uint balance = token.balanceOf(this);
@@ -70,7 +70,7 @@ contract Owned {
     *  Withdraw ether from contract to owner.
     *  This method is only allowed for contact owner.
     */
-    function withdrawEther() onlyContractOwner {
+    function withdrawEther() external onlyContractOwner {
         if (this.balance > 0)  {
             msg.sender.transfer(this.balance);
         }

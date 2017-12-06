@@ -1,8 +1,8 @@
 pragma solidity ^0.4.11;
 
 contract Roles2LibraryInterface {
-    function addUserRole(address _user, uint8 _role) returns(bool);
-    function canCall(address _src, address _code, bytes4 _sig) constant returns(bool);
+    function addUserRole(address _user, uint8 _role) public returns(bool);
+    function canCall(address _src, address _code, bytes4 _sig) public view returns(bool);
 }
 
 contract Roles2LibraryAdapter {
@@ -18,16 +18,16 @@ contract Roles2LibraryAdapter {
         _;
     }
 
-    function Roles2LibraryAdapter(address _roles2Library) {
+    function Roles2LibraryAdapter(address _roles2Library) public {
         roles2Library = Roles2LibraryInterface(_roles2Library);
     }
 
-    function setRoles2Library(Roles2LibraryInterface _roles2Library) auth() returns(bool) {
+    function setRoles2Library(Roles2LibraryInterface _roles2Library) public auth() returns(bool) {
         roles2Library = _roles2Library;
         return true;
     }
 
-    function _isAuthorized(address _src, bytes4 _sig) internal returns(bool) {
+    function _isAuthorized(address _src, bytes4 _sig) internal view returns(bool) {
         if (_src == address(this)) {
             return true;
         }
