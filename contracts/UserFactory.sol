@@ -8,7 +8,7 @@ import './adapters/Roles2LibraryAdapter.sol';
 
 
 contract UserLibraryInterface {
-    function setMany(address _user, uint _areas, uint[] _categories, uint[] _skills) returns(bool);
+    function setMany(address _user, uint _areas, uint[] _categories, uint[] _skills) public returns(bool);
 }
 
 
@@ -27,9 +27,9 @@ contract UserFactory is MultiEventsHistoryAdapter, Roles2LibraryAdapter {
         uint[] skills
     );
 
-    function UserFactory(address _roles2Library) Roles2LibraryAdapter(_roles2Library) {}
+    function UserFactory(address _roles2Library) Roles2LibraryAdapter(_roles2Library) public {}
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) public auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -37,12 +37,12 @@ contract UserFactory is MultiEventsHistoryAdapter, Roles2LibraryAdapter {
         return true;
     }
 
-    function setUserLibrary(UserLibraryInterface _userLibrary) auth() returns(bool) {
+    function setUserLibrary(UserLibraryInterface _userLibrary) public auth() returns(bool) {
         userLibrary = _userLibrary;
         return true;
     }
 
-    function getUserLibrary() constant returns(address) {
+    function getUserLibrary() public constant returns(address) {
         return userLibrary;
     }
 
@@ -55,6 +55,7 @@ contract UserFactory is MultiEventsHistoryAdapter, Roles2LibraryAdapter {
         uint[] _categories,
         uint[] _skills
     )
+        public
         auth()
     returns(bool) {
         User user = new User(_owner, _recoveryContract);
@@ -123,7 +124,7 @@ contract UserFactory is MultiEventsHistoryAdapter, Roles2LibraryAdapter {
         uint _areas,
         uint[] _categories,
         uint[] _skills
-    ) {
+    ) public {
         UserCreated(
             _self(),
             _user,
