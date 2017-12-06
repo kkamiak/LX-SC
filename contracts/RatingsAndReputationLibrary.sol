@@ -6,24 +6,24 @@ import './adapters/StorageAdapter.sol';
 import './base/BitOps.sol';
 
 contract UserLibraryInterface {
-    function hasArea(address _user, uint _area) returns(bool);
-    function hasCategory(address _user, uint _area, uint _category) returns(bool);
-    function hasSkill(address _user, uint _area, uint _category, uint _skill) returns(bool);
+    function hasArea(address _user, uint _area) public returns(bool);
+    function hasCategory(address _user, uint _area, uint _category) public returns(bool);
+    function hasSkill(address _user, uint _area, uint _category, uint _skill) public returns(bool);
 }
 
 contract JobControllerInterface {
-    function getJobState(uint _jobId) returns(uint);
-    function getJobClient(uint _jobId) returns(address);
-    function getJobWorker(uint _jobId) returns(address);
-    function getJobSkillsArea(uint _jobId) returns(uint);
-    function getJobSkillsCategory(uint _jobId) returns(uint);
-    function getJobSkills(uint _jobId) returns(uint);
-    function getFinalState(uint _jobId) returns(uint);
+    function getJobState(uint _jobId) public returns(uint);
+    function getJobClient(uint _jobId) public returns(address);
+    function getJobWorker(uint _jobId) public returns(address);
+    function getJobSkillsArea(uint _jobId) public returns(uint);
+    function getJobSkillsCategory(uint _jobId) public returns(uint);
+    function getJobSkills(uint _jobId) public returns(uint);
+    function getFinalState(uint _jobId) public returns(uint);
 }
 
 contract BoardControllerInterface {
-    function getUserStatus(uint _boardId, address _user) returns(bool);
-    function getJobsBoard(uint _jobId) returns(uint);
+    function getUserStatus(uint _boardId, address _user) public returns(bool);
+    function getJobsBoard(uint _jobId) public returns(uint);
 }
 
 contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2LibraryAdapter, BitOps {
@@ -117,6 +117,7 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
     }
 
     function RatingsAndReputationLibrary(Storage _store, bytes32 _crate, address _roles2Library)
+        public
         StorageAdapter(_store, _crate)
         Roles2LibraryAdapter(_roles2Library)
     {
@@ -127,7 +128,7 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
         boardRating.init('boardRating');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) external auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -135,28 +136,28 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
         return true;
     }
 
-    function setJobController(address _jobController) auth() returns(bool) {
+    function setJobController(address _jobController) external auth() returns(bool) {
         jobController = JobControllerInterface(_jobController);
         return true;
     }
 
-    function setUserLibrary(address _userLibrary) auth() returns(bool) {
+    function setUserLibrary(address _userLibrary) external auth() returns(bool) {
         userLibrary = UserLibraryInterface(_userLibrary);
         return true;
     }
 
-    function setBoardController(address _boardController) auth() returns(bool) {
+    function setBoardController(address _boardController) external auth() returns(bool) {
         boardController = BoardControllerInterface(_boardController);
         return true;
     }
 
     // USER RATING
 
-    function getUserRating(address _rater, address _to) constant returns(uint) {
+    function getUserRating(address _rater, address _to) public view returns(uint) {
         return store.get(userRatingsGiven, _rater, _to);
     }
 
-    function setUserRating(address _to, uint8 _rating) validRating(_rating) returns(bool) {
+    function setUserRating(address _to, uint8 _rating) public validRating(_rating) returns(bool) {
         store.set(userRatingsGiven, msg.sender, _to, _rating);
         _emitUserRatingGiven(msg.sender, _to, _rating);
         return true;
@@ -165,11 +166,12 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
 
     // JOB RATING
 
-    function getJobRating(address _to, uint _jobId) constant returns(address, uint8) {
+    function getJobRating(address _to, uint _jobId) public view returns(address, uint8) {
         return store.get(jobRatingsGiven, _to, _jobId);
     }
 
     function setJobRating(address _to, uint8 _rating,  uint _jobId)
+        public
         validRating(_rating)
         canSetRating(_jobId)
         canSetJobRating(_jobId, _to)
@@ -186,6 +188,7 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
     // BOARD RATING
 
     function setBoardRating(uint _to, uint8 _rating)
+        public
         validRating(_rating)
         onlyBoardMember(_to, msg.sender)
     returns(bool) {
@@ -194,7 +197,7 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
         return true;
     }
 
-    function getBoardRating(address _rater, uint _boardId) constant returns(uint) {
+    function getBoardRating(address _rater, uint _boardId) public view returns(uint) {
         return store.get(boardRating, _rater, _boardId);
     }
 
@@ -202,6 +205,7 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
     // SKILL RATING
 
     function rateWorkerSkills(uint _jobId, address _to, uint _area, uint _category, uint[] _skills, uint8[] _ratings)
+        public
         singleOddFlag(_area)
         singleOddFlag(_category)
         canSetRating(_jobId)
@@ -235,7 +239,7 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
     }
 
     function getSkillRating(address _to, uint _area, uint _category, uint _skill, uint _jobId)
-        constant
+        public view
     returns(address, uint8) {
         return store.get(skillRatingsGiven, _to, _jobId, _area, _category, _skill);
     }
@@ -243,11 +247,11 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
 
     // EVALUATIONS
 
-    function getAreaEvaluation(address _to, uint _area, address _rater) constant returns(uint8) {
+    function getAreaEvaluation(address _to, uint _area, address _rater) public view returns(uint8) {
         return store.get(areasEvaluated, _to, _area, _rater);
     }
 
-    function evaluateArea(address _to, uint8 _rating, uint _area) auth() returns(bool) {
+    function evaluateArea(address _to, uint8 _rating, uint _area) external auth() returns(bool) {
         return _evaluateArea(_to, _rating, _area, false);
     }
 
@@ -263,11 +267,12 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
         return true;
     }
 
-    function getCategoryEvaluation(address _to, uint _area, uint _category, address _rater) constant returns(uint8) {
+    function getCategoryEvaluation(address _to, uint _area, uint _category, address _rater) public view returns(uint8) {
         return store.get(categoriesEvaluated, _to, _area, _category, _rater);
     }
 
     function evaluateCategory(address _to, uint8 _rating, uint _area, uint _category)
+        external
         auth()
     returns(bool) {
         return _evaluateCategory(_to, _rating, _area, _category, false);
@@ -288,12 +293,13 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
     }
 
     function getSkillEvaluation(address _to, uint _area, uint _category, uint _skill, address _rater)
-        constant
+        public view
     returns(uint8) {
         return store.get(skillsEvaluated, _to, _area, _category, _skill,  _rater);
     }
 
     function evaluateSkill(address _to, uint8 _rating, uint _area, uint _category, uint _skill)
+        external
         auth()
     returns(bool) {
         return _evaluateSkill(_to, _rating, _area, _category, _skill, false);
@@ -312,6 +318,7 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
     }
 
     function evaluateMany(address _to, uint _areas, uint[] _categories, uint[] _skills, uint8[] _rating)
+        external
         auth()
     returns(bool) {
         uint categoriesCounter = 0;
@@ -393,37 +400,37 @@ contract RatingsAndReputationLibrary is StorageAdapter, MultiEventsHistoryAdapte
         RatingsAndReputationLibrary(getEventsHistory()).emitSkillEvaluated(_rater, _to, _rating, _area, _category, _skill);
     }
 
-    function emitUserRatingGiven(address _rater, address _to, uint _rating) {
+    function emitUserRatingGiven(address _rater, address _to, uint _rating) public {
         UserRatingGiven(_self(), _rater, _to, _rating);
     }
 
-    function emitBoardRatingGiven(address _rater, uint _to, uint8 _rating) {
+    function emitBoardRatingGiven(address _rater, uint _to, uint8 _rating) public {
         BoardRatingGiven(_self(), _rater, _to, _rating);
     }
 
-    function emitJobRatingGiven(address _rater, address _to, uint _jobId, uint8 _rating) {
+    function emitJobRatingGiven(address _rater, address _to, uint _jobId, uint8 _rating) public {
         JobRatingGiven(_self(), _rater, _to, _rating, _jobId);
     }
 
-    function emitSkillRatingGiven(address _rater, address _to, uint8 _rating, uint _area, uint _category, uint _skill, uint _jobId) {
+    function emitSkillRatingGiven(address _rater, address _to, uint8 _rating, uint _area, uint _category, uint _skill, uint _jobId) public {
         SkillRatingGiven(_self(), _rater, _to, _rating, _area, _category, _skill, _jobId);
     }
 
-    function emitAreaEvaluated(address _rater, address _to, uint8 _rating, uint _area) {
+    function emitAreaEvaluated(address _rater, address _to, uint8 _rating, uint _area) public {
         AreaEvaluated(_self(), _rater, _to, _rating, _area);
     }
 
-    function emitCategoryEvaluated(address _rater, address _to, uint8 _rating, uint _area, uint _category) {
+    function emitCategoryEvaluated(address _rater, address _to, uint8 _rating, uint _area, uint _category) public {
         CategoryEvaluated(_self(), _rater, _to, _rating, _area, _category);
     }
 
-    function emitSkillEvaluated(address _rater, address _to, uint8 _rating, uint _area, uint _category, uint _skill) {
+    function emitSkillEvaluated(address _rater, address _to, uint8 _rating, uint _area, uint _category, uint _skill) public {
         SkillEvaluated(_self(), _rater, _to, _rating, _area, _category, _skill);
     }
 
     // HELPERS
     
-    function _validRating(uint8 _rating) internal constant returns(bool) {
+    function _validRating(uint8 _rating) internal pure returns(bool) {
         return _rating > 0 && _rating <= 10;
     }
 }
