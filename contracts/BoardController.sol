@@ -59,6 +59,7 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
     }
 
     function BoardController(Storage _store, bytes32 _crate, address _roles2Library, address _erc20Library)
+      public
       StorageAdapter(_store, _crate)
       Roles2LibraryAndERC20LibraryAdapter(_roles2Library, _erc20Library)
     {
@@ -78,7 +79,7 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
         boardStatus.init('boardStatus');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) public auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -87,6 +88,7 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
     }
 
     function createBoard(bytes32 _name, bytes32 _boardDescription, uint _tags, uint _tagsArea, uint _tagsCategory)
+        external
         auth()
         singleOddFlag(_tagsArea)
         singleOddFlag(_tagsCategory)
@@ -106,6 +108,7 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
     }
 
     function bindJobWithBoard(uint _boardId, uint _jobId)
+        public
         notBindedJobYet(_boardId, _jobId)
         notClosed(_boardId)
     returns(bool) {
@@ -115,6 +118,7 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
     }
 
     function bindUserWithBoard(uint _boardId, address _user)
+        public
         notBindedUserYet(_boardId, _user)
         notClosed(_boardId)
     returns(bool) {
@@ -123,6 +127,7 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
     }
 
     function closeBoard(uint _boardId)
+        external
         auth()
         notClosed(_boardId)
     returns(bool) {
@@ -173,7 +178,9 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
         uint _tagsArea,
         uint _tagsCategory,
         bool _boardStatus
-    ) {
+    )
+        public
+    {
         BoardCreated(
           _self(),
           _boardId,
@@ -187,35 +194,35 @@ contract BoardController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Lib
           );
     }
 
-    function emitJobBinded(uint _boardId, uint _jobId, bool _status) {
+    function emitJobBinded(uint _boardId, uint _jobId, bool _status) public {
       JobBinded(_self(), _boardId, _jobId, _status);
     }
 
-    function emitUserBinded(uint _boardId, address _user, bool _status) {
+    function emitUserBinded(uint _boardId, address _user, bool _status) public {
       UserBinded(_self(), _boardId, _user, _status);
     }
 
-    function emitBoardClosed(uint _boardId, bool _status) {
+    function emitBoardClosed(uint _boardId, bool _status) public {
       BoardClosed(_self(), _boardId, _status);
     }
 
-    function getBoardsCount() constant returns(uint) {
+    function getBoardsCount() public view returns(uint) {
         return store.get(boardsCount);
     }
 
-    function getBoardStatus(uint _boardId) constant returns(bool) {
+    function getBoardStatus(uint _boardId) public view returns(bool) {
         return store.get(boardStatus, _boardId);
     }
 
-    function getJobStatus(uint _boardId, uint _jobId) constant returns(bool) {
+    function getJobStatus(uint _boardId, uint _jobId) public view returns(bool) {
         return store.get(jobBinding, _boardId, _jobId);
     }
 
-    function getUserStatus(uint _boardId, address _user) constant returns(bool) {
+    function getUserStatus(uint _boardId, address _user) public view returns(bool) {
         return store.get(userBinding, _boardId, _user);
     }
 
-    function getJobsBoard(uint _jobId) constant returns(uint) {
+    function getJobsBoard(uint _jobId) public view returns(uint) {
         return store.get(jobsBoard, _jobId);
     }
 
