@@ -16,7 +16,7 @@ contract MultiEventsHistory is Roles2LibraryAdapter {
     // Authorized calling contracts.
     mapping(address => bool) public isAuthorized;
 
-    function MultiEventsHistory(address _roles2Library) Roles2LibraryAdapter(_roles2Library) {}
+    function MultiEventsHistory(address _roles2Library) public Roles2LibraryAdapter(_roles2Library) {}
 
     /**
      * Authorize new caller contract.
@@ -25,7 +25,7 @@ contract MultiEventsHistory is Roles2LibraryAdapter {
      *
      * @return success.
      */
-    function authorize(address _caller) auth() returns(bool) {
+    function authorize(address _caller) external auth() returns(bool) {
         if (isAuthorized[_caller]) {
             return false;
         }
@@ -41,7 +41,7 @@ contract MultiEventsHistory is Roles2LibraryAdapter {
      *
      * Throws if call failed.
      */
-    function () {
+    function () external {
         if (!isAuthorized[msg.sender]) {
             return;
         }
