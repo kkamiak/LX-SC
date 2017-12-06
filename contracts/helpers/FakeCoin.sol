@@ -2,37 +2,37 @@ pragma solidity ^0.4.11;
 
 // For testing purposes.
 contract FakeCoin {
-    mapping(address => uint) public balanceOf;
 
     // Owner of account approves the transfer of an amount to another account
-    mapping(address => mapping (address => uint256)) allowed;
+    mapping (address => mapping (address => uint256)) allowed;
+    mapping (address => uint) public balanceOf;
 
     uint public fee;
     bool public feeFromPayer;
     bool public approvalMode;
     bool public maintenanceMode;
 
-    function mint(address _to, uint _value) {
+    function mint(address _to, uint _value) external {
         balanceOf[_to] += _value;
     }
 
-    function enableApproval() {
+    function enableApproval() public {
         approvalMode = true;
     }
 
-    function disableApproval() {
+    function disableApproval() public {
         approvalMode = false;
     }
 
-    function enableMaintenance() {
+    function enableMaintenance() public {
         maintenanceMode = true;
     }
 
-    function disableMaintenance() {
+    function disableMaintenance() public {
         maintenanceMode = false;
     }
 
-    function approve(address _spender, uint _amount) returns (bool success) {
+    function approve(address _spender, uint _amount) external returns (bool) {
         allowed[msg.sender][_spender] = _amount;
         return true;
     }
@@ -46,29 +46,32 @@ contract FakeCoin {
 
     modifier enoughCoins(address _spender, uint _value) {
         if (balanceOf[_spender] < (feeFromPayer ? _value + fee : _value)) {
-            return ;
+            return;
         }
         _;
     }
 
     function transfer(address _to, uint _value)
-        maintenance()
+    external
+    maintenance()
         //enoughCoins(msg.sender, _value)
-    returns(bool) {
+    returns (bool) {
         balanceOf[msg.sender] -= feeFromPayer ? _value + fee : _value;
         balanceOf[_to] += feeFromPayer ? _value : _value - fee;
         return true;
     }
 
     function transferFrom(address _from, address _to, uint _value)
-        maintenance()
+    external
+    maintenance()
         //enoughCoins(_from, _value)
-    returns(bool) {
+    returns (bool) {
         if (!approvalMode) {
             balanceOf[_from] -= feeFromPayer ? _value + fee : _value;
             balanceOf[_to] += feeFromPayer ? _value : _value - fee;
             return true;
-        } else {
+        }
+        else {
             if (allowed[_from][msg.sender] >= (feeFromPayer ? _value + fee : _value)) {
                 balanceOf[_from] -= feeFromPayer ? _value + fee : _value;
                 allowed[_from][msg.sender] -= feeFromPayer ? _value + fee : _value;
@@ -78,11 +81,11 @@ contract FakeCoin {
         }
     }
 
-    function setFee(uint _value) {
+    function setFee(uint _value) external {
         fee = _value;
     }
 
-    function setFeeFromPayer() {
+    function setFeeFromPayer() public {
         feeFromPayer = true;
     }
 }
