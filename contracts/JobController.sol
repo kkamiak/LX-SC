@@ -7,12 +7,12 @@ import './base/BitOps.sol';
 
 
 contract UserLibraryInterface {
-    function hasSkills(address _user, uint _area, uint _category, uint _skills) constant returns(bool);
+    function hasSkills(address _user, uint _area, uint _category, uint _skills) public view returns(bool);
 }
 
 contract PaymentProcessorInterface {
-    function lockPayment(bytes32 _operationId, address _from, uint _value, address _contract) returns(bool);
-    function releasePayment(bytes32 _operationId, address _to, uint _value, address _change, uint _feeFromValue, uint _additionalFee, address _contract) returns(bool);
+    function lockPayment(bytes32 _operationId, address _from, uint _value, address _contract) public returns(bool);
+    function releasePayment(bytes32 _operationId, address _to, uint _value, address _change, uint _feeFromValue, uint _additionalFee, address _contract) public returns(bool);
 }
 
 contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2LibraryAndERC20LibraryAdapter, BitOps {
@@ -88,6 +88,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function JobController(Storage _store, bytes32 _crate, address _roles2Library, address _erc20Library)
+        public
         StorageAdapter(_store, _crate)
         Roles2LibraryAndERC20LibraryAdapter(_roles2Library, _erc20Library)
     {
@@ -118,7 +119,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         bindStatus.init('bindStatus');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) external auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -126,17 +127,17 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         return true;
     }
 
-    function setPaymentProcessor(PaymentProcessorInterface _paymentProcessor) auth() returns(bool) {
+    function setPaymentProcessor(PaymentProcessorInterface _paymentProcessor) external auth() returns(bool) {
         paymentProcessor = _paymentProcessor;
         return true;
     }
 
-    function setUserLibrary(UserLibraryInterface _userLibrary) auth() returns(bool) {
+    function setUserLibrary(UserLibraryInterface _userLibrary) external auth() returns(bool) {
         userLibrary = _userLibrary;
         return true;
     }
 
-    function calculateLockAmount(uint _jobId) constant returns(uint) {
+    function calculateLockAmount(uint _jobId) public view returns(uint) {
         address worker = store.get(jobWorker, _jobId);
         // Lock additional working hour + 10% of resulting amount
         return (
@@ -147,7 +148,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
                ) * 11;
     }
 
-    function calculatePaycheck(uint _jobId) constant returns(uint) {
+    function calculatePaycheck(uint _jobId) public view returns(uint) {
         address worker = store.get(jobWorker, _jobId);
         if (store.get(jobState, _jobId) == uint(JobState.FINISHED)) {
             // Means that participants have agreed on job completion,
@@ -197,6 +198,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
 
 
     function postJob(uint _area, uint _category, uint _skills, bytes32 _detailsIPFSHash)
+        public
         singleOddFlag(_area)
         singleOddFlag(_category)
         hasFlags(_skills)
@@ -215,6 +217,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function postJobOffer(uint _jobId, address _erc20Contract, uint _rate, uint _estimate, uint _ontop)
+        public
         onlyNotClient(_jobId)
         onlyJobState(_jobId, JobState.CREATED)
         onlySupportedContract(_erc20Contract)
@@ -233,7 +236,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         return true;
     }
 
-    function _validEstimate(uint _rate, uint _estimate, uint _ontop) internal constant returns(bool) {
+    function _validEstimate(uint _rate, uint _estimate, uint _ontop) internal pure returns(bool) {
         if (_rate == 0 || _estimate == 0) {
             return false;
         }
@@ -248,7 +251,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         return ((prev + _ontop) / 10) * 11 > prev;
     }
 
-    function _hasSkillsCheck (uint _jobId) internal returns(bool) {
+    function _hasSkillsCheck (uint _jobId) internal view returns(bool) {
         return userLibrary.hasSkills(
             msg.sender,
             store.get(jobSkillsArea, _jobId),
@@ -258,6 +261,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function acceptOffer(uint _jobId, address _worker)
+        external
         onlyJobState(_jobId, JobState.CREATED)
         onlyClient(_jobId)
     returns(bool) {
@@ -282,6 +286,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
 
 
     function startWork(uint _jobId)
+        external
         onlyJobState(_jobId, JobState.ACCEPTED)
         onlyWorker(_jobId)
     returns(bool) {
@@ -290,6 +295,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function confirmStartWork(uint _jobId)
+        external
         onlyJobState(_jobId, JobState.PENDING_START)
         onlyClient(_jobId)
     returns(bool) {
@@ -301,6 +307,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
 
 
     function pauseWork(uint _jobId)
+        external
         onlyJobState(_jobId, JobState.STARTED)
         onlyWorker(_jobId)
     returns(bool) {
@@ -314,6 +321,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function resumeWork(uint _jobId)
+        external
         onlyJobState(_jobId, JobState.STARTED)
         onlyWorker(_jobId)
     returns(bool) {
@@ -331,6 +339,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function addMoreTime(uint _jobId, uint16 _additionalTime)
+        external
         onlyJobState(_jobId, JobState.STARTED)
         onlyClient(_jobId)
     returns(bool) {
@@ -363,6 +372,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
 
 
     function endWork(uint _jobId)
+        external
         onlyJobState(_jobId, JobState.STARTED)
         onlyWorker(_jobId)
     returns(bool) {
@@ -372,6 +382,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
     function confirmEndWork(uint _jobId)
+        external
         onlyJobState(_jobId, JobState.PENDING_FINISH)
         onlyClient(_jobId)
     returns(bool) {
@@ -382,7 +393,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
     }
 
 
-    function cancelJob(uint _jobId) onlyClient(_jobId) returns(bool) {
+    function cancelJob(uint _jobId) external onlyClient(_jobId) returns(bool) {
         if (
             store.get(jobState, _jobId) != uint(JobState.ACCEPTED) &&
             store.get(jobState, _jobId) != uint(JobState.PENDING_START) &&
@@ -412,7 +423,7 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         return true;
     }
 
-    function releasePayment(uint _jobId) onlyJobState(_jobId, JobState.FINISHED) returns(bool) {
+    function releasePayment(uint _jobId) public onlyJobState(_jobId, JobState.FINISHED) returns(bool) {
         uint payCheck = calculatePaycheck(_jobId);
         address worker = store.get(jobWorker, _jobId);
         if (!paymentProcessor.releasePayment(
@@ -433,39 +444,39 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         return true;
     }
 
-    function getJobsCount() constant returns(uint) {
+    function getJobsCount() public view returns(uint) {
         return store.get(jobsCount);
     }
 
-    function getJobClient(uint _jobId) constant returns(address) {
+    function getJobClient(uint _jobId) public view returns(address) {
         return store.get(jobClient, _jobId);
     }
 
-    function getJobWorker(uint _jobId) constant returns(address) {
+    function getJobWorker(uint _jobId) public view returns(address) {
         return store.get(jobWorker, _jobId);
     }
 
-    function getJobSkillsArea(uint _jobId) constant returns(uint) {
+    function getJobSkillsArea(uint _jobId) public view returns(uint) {
         return store.get(jobSkillsArea, _jobId);
     }
 
-    function getJobSkillsCategory(uint _jobId) constant returns(uint) {
+    function getJobSkillsCategory(uint _jobId) public view returns(uint) {
         return store.get(jobSkillsCategory, _jobId);
     }
 
-    function getJobSkills(uint _jobId) constant returns(uint) {
+    function getJobSkills(uint _jobId) public view returns(uint) {
         return store.get(jobSkills, _jobId);
     }
 
-    function getJobDetailsIPFSHash(uint _jobId) constant returns(bytes32) {
+    function getJobDetailsIPFSHash(uint _jobId) public view returns(bytes32) {
         return store.get(jobDetailsIPFSHash, _jobId);
     }
 
-    function getJobState(uint _jobId) constant returns(uint) {
+    function getJobState(uint _jobId) public view returns(uint) {
         return uint(store.get(jobState, _jobId));
     }
 
-    function getFinalState(uint _jobId) constant returns(uint) {
+    function getFinalState(uint _jobId) public view returns(uint) {
         return store.get(jobFinalizedAt, _jobId);
     }
 
@@ -545,43 +556,44 @@ contract JobController is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libra
         uint _skills,
         bytes32 _detailsIPFSHash,
         bool _bindStatus
-    ) {
+    )
+    public {
         JobPosted(_self(), _jobId, _client, _skillsArea, _skillsCategory, _skills, _detailsIPFSHash, _bindStatus);
     }
 
-    function emitJobOfferPosted(uint _jobId, address _worker, uint _rate, uint _estimate, uint _ontop) {
+    function emitJobOfferPosted(uint _jobId, address _worker, uint _rate, uint _estimate, uint _ontop) public {
         JobOfferPosted(_self(), _jobId, _worker, _rate, _estimate, _ontop);
     }
 
-    function emitJobOfferAccepted(uint _jobId, address _worker) {
+    function emitJobOfferAccepted(uint _jobId, address _worker) public {
         JobOfferAccepted(_self(), _jobId, _worker);
     }
 
-    function emitWorkStarted(uint _jobId, uint _at) {
+    function emitWorkStarted(uint _jobId, uint _at) public {
         WorkStarted(_self(), _jobId, _at);
     }
 
-    function emitWorkPaused(uint _jobId, uint _at) {
+    function emitWorkPaused(uint _jobId, uint _at) public {
         WorkPaused(_self(), _jobId, _at);
     }
 
-    function emitWorkResumed(uint _jobId, uint _at) {
+    function emitWorkResumed(uint _jobId, uint _at) public {
         WorkResumed(_self(), _jobId, _at);
     }
 
-    function emitTimeAdded(uint _jobId, uint _time) {
+    function emitTimeAdded(uint _jobId, uint _time) public {
         TimeAdded(_self(), _jobId, _time);
     }
 
-    function emitWorkFinished(uint _jobId, uint _at) {
+    function emitWorkFinished(uint _jobId, uint _at) public {
         WorkFinished(_self(), _jobId, _at);
     }
 
-    function emitPaymentReleased(uint _jobId) {
+    function emitPaymentReleased(uint _jobId) public {
         PaymentReleased(_self(), _jobId);
     }
 
-    function emitJobCanceled(uint _jobId) {
+    function emitJobCanceled(uint _jobId) public {
         JobCanceled(_self(), _jobId);
     }
 }
