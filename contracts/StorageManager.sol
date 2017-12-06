@@ -9,7 +9,7 @@ contract StorageManager is MultiEventsHistoryAdapter, Owned {
     event AccessGiven(address indexed self, address actor, bytes32 role);
     event AccessBlocked(address indexed self, address actor, bytes32 role);
 
-    function setupEventsHistory(address _eventsHistory) onlyContractOwner() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) public onlyContractOwner() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -17,19 +17,19 @@ contract StorageManager is MultiEventsHistoryAdapter, Owned {
         return true;
     }
 
-    function giveAccess(address _actor, bytes32 _role) onlyContractOwner() returns(bool) {
+    function giveAccess(address _actor, bytes32 _role) public onlyContractOwner() returns(bool) {
         approvedContracts[_actor][_role] = true;
         _emitAccessGiven(_actor, _role);
         return true;
     }
 
-    function blockAccess(address _actor, bytes32 _role) onlyContractOwner() returns(bool) {
+    function blockAccess(address _actor, bytes32 _role) public onlyContractOwner() returns(bool) {
         approvedContracts[_actor][_role] = false;
         _emitAccessBlocked(_actor, _role);
         return true;
     }
 
-    function isAllowed(address _actor, bytes32 _role) constant returns(bool) {
+    function isAllowed(address _actor, bytes32 _role) public constant returns(bool) {
         return approvedContracts[_actor][_role];
     }
 
@@ -41,11 +41,11 @@ contract StorageManager is MultiEventsHistoryAdapter, Owned {
         StorageManager(getEventsHistory()).emitAccessBlocked(_user, _role);
     }
 
-    function emitAccessGiven(address _user, bytes32 _role) {
+    function emitAccessGiven(address _user, bytes32 _role) public {
         AccessGiven(_self(), _user, _role);
     }
 
-    function emitAccessBlocked(address _user, bytes32 _role) {
+    function emitAccessBlocked(address _user, bytes32 _role) public {
         AccessBlocked(_self(), _user, _role);
     }
 }
