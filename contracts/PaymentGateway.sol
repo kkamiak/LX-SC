@@ -6,12 +6,12 @@ import './adapters/StorageAdapter.sol';
 
 
 contract ERC20BalanceInterface {
-    function balanceOf(address _address) constant returns(uint);
+    function balanceOf(address _address) public view returns(uint);
 }
 
 contract BalanceHolderInterface {
-    function deposit(address _from, uint _value, address _contract) returns(bool);
-    function withdraw(address _to, uint _value, address _contract) returns(bool);
+    function deposit(address _from, uint _value, address _contract) public returns(bool);
+    function withdraw(address _to, uint _value, address _contract) public returns(bool);
 }
 
 contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2LibraryAndERC20LibraryAdapter {
@@ -44,6 +44,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
     }
 
     function PaymentGateway(Storage _store, bytes32 _crate, address _roles2Library, address _erc20Library)
+        public
         StorageAdapter(_store, _crate)
         Roles2LibraryAndERC20LibraryAdapter(_roles2Library, _erc20Library)
     {
@@ -53,7 +54,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         fees.init('fees');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {  // only owner
+    function setupEventsHistory(address _eventsHistory) external auth() returns(bool) {  // only owner
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -61,17 +62,18 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         return true;
     }
 
-    function setBalanceHolder(address _balanceHolder) auth() returns(bool) {  // only owner
+    function setBalanceHolder(address _balanceHolder) external auth() returns(bool) {  // only owner
         store.set(balanceHolder, _balanceHolder);
         return true;
     }
 
-    function setFeeAddress(address _feeAddress) auth() returns(bool) {  // only owner
+    function setFeeAddress(address _feeAddress) external auth() returns(bool) {  // only owner
         store.set(feeAddress, _feeAddress);
         return true;
     }
 
     function setFeePercent(uint _feePercent, address _contract)
+        external
         auth()  // only owner
         onlySupportedContract(_contract)
     returns(bool) {
@@ -83,11 +85,12 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         return true;
     }
 
-    function getFeePercent(address _contract) constant returns(uint) {
+    function getFeePercent(address _contract) public view returns(uint) {
         return store.get(fees, _contract);
     }
 
     function deposit(uint _value, address _contract)
+        public
         notNull(_value)
         onlySupportedContract(_contract)
     returns(bool) {
@@ -107,6 +110,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
     }
 
     function withdraw(uint _value, address _contract)
+        public
         notNull(_value)
     returns(bool) {
         return _withdraw(msg.sender, _value, _contract);
@@ -129,7 +133,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
     }
 
     // Will be optimized later if used.
-    function transfer(address _from, address _to, uint _value, address _contract) returns(bool) {
+    function transfer(address _from, address _to, uint _value, address _contract) public returns(bool) {
         return transferWithFee(_from, _to, _value, _value, 0, _contract);
     }
 
@@ -141,6 +145,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         uint _additionalFee,
         address _contract
     )
+    public
     returns(bool) {
         address[] memory toArray = new address[](1);
         toArray[0] = _to;
@@ -157,6 +162,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         uint _additionalFee,
         address _contract
     )
+        public
         auth()  // only payment processor
         notNull(uint(_from))
         onlySupportedContract(_contract)
@@ -190,6 +196,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         uint _additionalFee,
         address _contract
     )
+        external
         auth()  // only payment processor
         notNull(uint(_from))
         onlySupportedContract(_contract)
@@ -219,6 +226,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         uint[] _value,
         address _contract
     )
+        external
         auth()  // only payment processor
         notNull(uint(_to))
         onlySupportedContract(_contract)
@@ -238,6 +246,7 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
     }
 
     function forwardFee(uint _value, address _contract)
+        public
         notNull(_value)
     returns(bool) {
         if (getFeeAddress() == 0x0) {
@@ -246,42 +255,42 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         return _withdraw(getFeeAddress(), _value, _contract);
     }
 
-    function getBalance(address _address, address _contract) constant returns(uint) {
+    function getBalance(address _address, address _contract) public view returns(uint) {
         return store.get(balances, _contract, _address);
     }
 
-    function getBalanceOf(address _address, address _contract) constant returns(uint) {
+    function getBalanceOf(address _address, address _contract) public view returns(uint) {
         return ERC20BalanceInterface(_contract).balanceOf(_address);
     }
 
-    function calculateFee(uint _value, address _contract) constant returns(uint) {
+    function calculateFee(uint _value, address _contract) public view returns(uint) {
         uint feeRaw = _value * getFeePercent(_contract);
         return (feeRaw / 10000) + (feeRaw % 10000 == 0 ? 0 : 1);
     }
 
-    function getFeeAddress() constant returns(address) {
+    function getFeeAddress() public view returns(address) {
         return store.get(feeAddress);
     }
 
-    function getBalanceHolder() constant returns(BalanceHolderInterface) {
+    function getBalanceHolder() public view returns(BalanceHolderInterface) {
         return BalanceHolderInterface(store.get(balanceHolder));
     }
 
 
     // HELPERS
 
-    function _assert(bool _assertion) internal {
+    function _assert(bool _assertion) internal pure {
         if (!_assertion) {
             revert();
         }
     }
 
-    function _safeSub(uint _a, uint _b) internal constant returns(uint) {
+    function _safeSub(uint _a, uint _b) internal pure returns(uint) {
         _assert(_b <= _a);
         return _a - _b;
     }
 
-    function _safeAdd(uint _a, uint _b) internal constant returns(uint) {
+    function _safeAdd(uint _a, uint _b) internal pure returns(uint) {
         uint c = _a + _b;
         _assert(c >= _a);
         return c;
@@ -319,19 +328,19 @@ contract PaymentGateway is StorageAdapter, MultiEventsHistoryAdapter, Roles2Libr
         PaymentGateway(getEventsHistory()).emitTransferred(_from, _to, _value, _contract);
     }
 
-    function emitFeeSet(uint _feePercent, address _contract) {
+    function emitFeeSet(uint _feePercent, address _contract) public {
         FeeSet(_self(), _contract, _feePercent);
     }
 
-    function emitDeposited(address _by, uint _value, address _contract) {
+    function emitDeposited(address _by, uint _value, address _contract) public {
         Deposited(_self(), _contract, _by, _value);
     }
 
-    function emitWithdrawn(address _by, uint _value, address _contract) {
+    function emitWithdrawn(address _by, uint _value, address _contract) public {
         Withdrawn(_self(), _contract, _by, _value);
     }
 
-    function emitTransferred(address _from, address _to, uint _value, address _contract) {
+    function emitTransferred(address _from, address _to, uint _value, address _contract) public {
         Transferred(_self(), _contract, _from, _to, _value);
     }
 
