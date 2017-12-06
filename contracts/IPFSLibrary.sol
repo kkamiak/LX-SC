@@ -11,13 +11,14 @@ contract IPFSLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     event HashSet(address indexed self, address indexed setter, bytes32 indexed key, bytes32 hash);
 
     function IPFSLibrary(Storage _store, bytes32 _crate, address _roles2Library)
+        public
         StorageAdapter(_store, _crate)
         Roles2LibraryAdapter(_roles2Library)
     {
         ipfsHashes.init('ipfsHashes');
     }
 
-    function setupEventsHistory(address _eventsHistory) auth() returns(bool) {
+    function setupEventsHistory(address _eventsHistory) external auth() returns(bool) {
         if (getEventsHistory() != 0x0) {
             return false;
         }
@@ -25,11 +26,11 @@ contract IPFSLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
         return true;
     }
 
-    function getHash(address _from, bytes32 _itemName) constant returns(bytes32) {
+    function getHash(address _from, bytes32 _itemName) public view returns(bytes32) {
         return store.get(ipfsHashes, _from, _itemName);
     }
 
-    function setHash(bytes32 _itemName, bytes32 _itemHash) returns(bool) {
+    function setHash(bytes32 _itemName, bytes32 _itemHash) public returns(bool) {
         store.set(ipfsHashes, msg.sender, _itemName, _itemHash);
         _emitHashSet(msg.sender, _itemName, _itemHash);
         return true;
@@ -39,7 +40,7 @@ contract IPFSLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
         IPFSLibrary(getEventsHistory()).emitHashSet(_from, _itemName, _itemHash);
     }
 
-    function emitHashSet(address _from, bytes32 _itemName, bytes32 _itemHash) {
+    function emitHashSet(address _from, bytes32 _itemName, bytes32 _itemHash) public {
         HashSet(_self(), _from, _itemName, _itemHash);
     }
 }
