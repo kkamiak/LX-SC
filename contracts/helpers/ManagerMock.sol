@@ -1,13 +1,14 @@
 pragma solidity ^0.4.11;
 
 contract ManagerMock {
+
     bool denied;
 
-    function deny() {
+    function deny() public {
         denied = true;
     }
 
-    function isAllowed(address, bytes32) constant returns(bool) {
+    function isAllowed(address, bytes32) public returns(bool) {
         if (denied) {
             denied = false;
             return false;

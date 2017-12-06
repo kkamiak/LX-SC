@@ -3,6 +3,7 @@ pragma solidity ^0.4.11;
 import '../adapters/StorageAdapter.sol';
 
 contract StorageTester is StorageAdapter {
+
     StorageInterface.UInt uintVar;
     StorageInterface.Int intVar;
     StorageInterface.Address addressVar;
@@ -13,11 +14,11 @@ contract StorageTester is StorageAdapter {
     StorageInterface.Set setVar;
     StorageInterface.AddressesSet addressesSetVar;
 
-    function StorageTester(Storage _store, bytes32 _crate) StorageAdapter(_store, _crate) {
+    function StorageTester(Storage _store, bytes32 _crate) StorageAdapter(_store, _crate) public {
         reinit();
     }
 
-    function reinit() {
+    function reinit() public {
         uintVar.init('uintVar');
         intVar.init('intVar');
         addressVar.init('addressVar');
@@ -29,99 +30,99 @@ contract StorageTester is StorageAdapter {
         addressesSetVar.init('addressesSetVar');
     }
 
-    function setUInt(uint _value) {
+    function setUInt(uint _value) external {
         store.set(uintVar, _value);
     }
 
-    function getUInt() constant returns(uint) {
+    function getUInt() public view returns (uint) {
         return store.get(uintVar);
     }
 
-    function setInt(int _value) {
+    function setInt(int _value) external {
         store.set(intVar, _value);
     }
 
-    function getInt() constant returns(int) {
+    function getInt() public view returns (int) {
         return store.get(intVar);
     }
 
-    function setAddress(address _value) {
+    function setAddress(address _value) external {
         store.set(addressVar, _value);
     }
 
-    function getAddress() constant returns(address) {
+    function getAddress() public view returns (address) {
         return store.get(addressVar);
     }
 
-    function setBool(bool _value) {
+    function setBool(bool _value) external {
         store.set(boolVar, _value);
     }
 
-    function getBool() constant returns(bool) {
+    function getBool() public view returns (bool) {
         return store.get(boolVar);
     }
 
-    function setBytes32(bytes32 _value) {
+    function setBytes32(bytes32 _value) external {
         store.set(bytes32Var, _value);
     }
 
-    function getBytes32() constant returns(bytes32) {
+    function getBytes32() public view returns (bytes32) {
         return store.get(bytes32Var);
     }
 
-    function setMapping(bytes32 _key, bytes32 _value) {
+    function setMapping(bytes32 _key, bytes32 _value) external {
         store.set(mappingVar, _key, _value);
     }
 
-    function getMapping(bytes32 _key) constant returns(bytes32) {
+    function getMapping(bytes32 _key) external view returns (bytes32) {
         return store.get(mappingVar, _key);
     }
 
-    function setAddressUIntMapping(address _key, uint _value) {
+    function setAddressUIntMapping(address _key, uint _value) external {
         store.set(addressUIntMappingVar, _key, _value);
     }
 
-    function getAddressUIntMapping(address _key) constant returns(uint) {
+    function getAddressUIntMapping(address _key) external view returns (uint) {
         return store.get(addressUIntMappingVar, _key);
     }
 
-    function addSet(bytes32 _value) {
+    function addSet(bytes32 _value) external {
         store.add(setVar, _value);
     }
 
-    function removeSet(bytes32 _value) {
+    function removeSet(bytes32 _value) external {
         store.remove(setVar, _value);
     }
 
-    function includesSet(bytes32 _value) constant returns(bool) {
+    function includesSet(bytes32 _value) external view returns (bool) {
         return store.includes(setVar, _value);
     }
 
-    function countSet() constant returns(uint) {
+    function countSet() public view returns (uint) {
         return store.count(setVar);
     }
 
-    function getSet() constant returns(bytes32[]) {
+    function getSet() public view returns (bytes32[]) {
         return store.get(setVar);
     }
 
-    function addAddressesSet(address _value) {
+    function addAddressesSet(address _value) external {
         store.add(addressesSetVar, _value);
     }
 
-    function removeAddressesSet(address _value) {
+    function removeAddressesSet(address _value) external {
         store.remove(addressesSetVar, _value);
     }
 
-    function includesAddressesSet(address _value) constant returns(bool) {
+    function includesAddressesSet(address _value) external view returns (bool) {
         return store.includes(addressesSetVar, _value);
     }
 
-    function countAddressesSet() constant returns(uint) {
+    function countAddressesSet() public view returns (uint) {
         return store.count(addressesSetVar);
     }
 
-    function getAddressesSet() constant returns(address[]) {
+    function getAddressesSet() public view returns (address[]) {
         return store.get(addressesSetVar);
     }
 }
