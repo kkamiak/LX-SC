@@ -14,22 +14,22 @@ contract User is Owned {
         }
     }
 
-    function User(address _owner, address _recoveryContract) Owned() {
+    function User(address _owner, address _recoveryContract) public Owned() {
         userProxy = new UserProxy();
         recoveryContract = _recoveryContract;
         contractOwner = _owner;
     }
 
-    function setUserProxy(UserProxy _userProxy) onlyContractOwner() returns(bool) {
+    function setUserProxy(UserProxy _userProxy) public onlyContractOwner() returns(bool) {
         userProxy = _userProxy;
         return true;
     }
 
-    function getUserProxy() constant returns(address) {
+    function getUserProxy() public constant returns(address) {
         return userProxy;
     }
 
-    function setRecoveryContract(address _recoveryContract) onlyContractOwner() returns(bool) {
+    function setRecoveryContract(address _recoveryContract) public onlyContractOwner() returns(bool) {
         recoveryContract = _recoveryContract;
         return true;
     }
@@ -40,12 +40,13 @@ contract User is Owned {
         uint _value,
         bool _throwOnFailedCall
     )
+        public
         onlyContractOwner()
     returns(bytes32) {
         return userProxy.forward(_destination, _data, _value, _throwOnFailedCall);
     }
 
-    function recoverUser(address newAddress) onlyRecoveryContract() returns(bool) {
+    function recoverUser(address newAddress) onlyRecoveryContract() public returns(bool) {
         contractOwner = newAddress;
         return true;
     }
