@@ -123,7 +123,7 @@ contract UserLibrary is StorageAdapter, MultiEventsHistoryAdapter, Roles2Library
     uint[] tempSkills;
     // If some area of category is full, then we are not looking into it cause observer can safely
     // assume that everything inside is filled.
-    function getUserSkills(address _user) public returns(uint, uint[], uint[]) {
+    function getUserSkills(address _user) public constant returns(uint, uint[], uint[]) {
         tempCategories.length = 0;
         tempSkills.length = 0;
         uint areas = store.get(skillAreas, _user);
